@@ -354,8 +354,8 @@ fn build_side_panel(app: &SudokuApp) -> Element<'_, Message> {
     let can_submit = can_submit(app);
     let can_clear = can_clear_selection(app);
     let tool_row = row![
-        tool_button("assets/icons/rotate-ccw.svg", Message::ResetPressed),
-        tool_button_enabled("assets/icons/eraser.svg", Message::ClearPressed, can_clear),
+        tool_button(Icon::Reset, Message::ResetPressed),
+        tool_button_enabled(Icon::Delete, Message::ClearPressed, can_clear),
         mode_tool_button(app.mode),
     ]
     .spacing(8);
@@ -546,12 +546,19 @@ fn dual_toggle_button<'a>(
         .into()
 }
 
-fn tool_button<'a>(icon_path: &'a str, message: Message) -> Element<'a, Message> {
-    tool_button_enabled(icon_path, message, true)
+#[derive(Debug, Clone, Copy)]
+enum Icon {
+    Reset,
+    Delete,
+    Notes,
+}
+
+fn tool_button<'a>(icon: Icon, message: Message) -> Element<'a, Message> {
+    tool_button_enabled(icon, message, true)
 }
 
 fn tool_button_enabled<'a>(
-    icon_path: &'a str,
+    icon_kind: Icon,
     message: Message,
     enabled: bool,
 ) -> Element<'a, Message> {
@@ -563,7 +570,7 @@ fn tool_button_enabled<'a>(
 
     let button = button(
         container(
-            icon(icon_path, icon_color)
+            icon(icon_kind, icon_color)
                 .width(Length::Fixed(22.0))
                 .height(Length::Fixed(22.0)),
         )
@@ -594,7 +601,7 @@ fn mode_tool_button(mode: InputMode) -> Element<'static, Message> {
 
     button(
         container(
-            icon("assets/icons/notebook-pen.svg", icon_color)
+            icon(Icon::Notes, icon_color)
                 .width(Length::Fixed(23.0))
                 .height(Length::Fixed(23.0)),
         )
@@ -611,8 +618,18 @@ fn mode_tool_button(mode: InputMode) -> Element<'static, Message> {
     .into()
 }
 
-fn icon<'a>(path: &'a str, color: Color) -> svg::Svg<'a, Theme> {
-    svg(path).style(move |_, _| svg::Style { color: Some(color) })
+fn icon(icon: Icon, color: Color) -> svg::Svg<'static, Theme> {
+    let handle = match icon {
+        Icon::Reset => {
+            svg::Handle::from_memory(&include_bytes!("../assets/icons/rotate-ccw.svg")[..])
+        }
+        Icon::Delete => svg::Handle::from_memory(&include_bytes!("../assets/icons/eraser.svg")[..]),
+        Icon::Notes => {
+            svg::Handle::from_memory(&include_bytes!("../assets/icons/notebook-pen.svg")[..])
+        }
+    };
+
+    svg(handle).style(move |_, _| svg::Style { color: Some(color) })
 }
 
 fn build_keypad() -> Element<'static, Message> {
