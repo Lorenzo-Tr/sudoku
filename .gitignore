@@ -1,2 +1,6 @@
 /target
 /node_modules
+/web/node_modules
+/web/src/wasm
+/web/dist
+/src-tauri/gen

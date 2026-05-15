@@ -21,27 +21,33 @@ jobs:
           - name: macos-arm64
             os: macos-14
             target: aarch64-apple-darwin
-            binary: sudoku
-            archive: sudoku-macos-arm64.tar.gz
           - name: linux-x86_64
             os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-            binary: sudoku
-            archive: sudoku-linux-x86_64.tar.gz
           - name: windows-x86_64
             os: windows-latest
             target: x86_64-pc-windows-msvc
-            binary: sudoku.exe
-            archive: sudoku-windows-x86_64.zip
 
     steps:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Install Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Enable pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.28.2 --activate
+
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: ${{ matrix.target }}
+          targets: ${{ matrix.target }},wasm32-unknown-unknown
 
       - name: Cache cargo registry
         uses: actions/cache@v5
@@ -58,32 +64,24 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libx11-dev libxi-dev libxcursor-dev libxrandr-dev libxinerama-dev libxkbcommon-dev libwayland-dev libasound2-dev pkg-config
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf pkg-config
 
-      - name: Test
-        run: cargo test --locked --target ${{ matrix.target }}
+      - name: Install frontend dependencies
+        run: pnpm install --frozen-lockfile
 
-      - name: Build release
-        run: cargo build --release --locked --target ${{ matrix.target }}
+      - name: Test Rust workspace
+        run: cargo test --workspace --locked
 
-      - name: Stage artifact
-        shell: bash
-        run: |
-          mkdir -p dist
-          cp "target/${{ matrix.target }}/release/${{ matrix.binary }}" "dist/${{ matrix.binary }}"
+      - name: Build web app
+        run: pnpm build:web
 
-      - name: Archive Unix artifact
-        if: runner.os != 'Windows'
-        shell: bash
-        run: tar -czf "${{ matrix.archive }}" -C dist "${{ matrix.binary }}"
+      - name: Build Tauri app
+        run: pnpm tauri build --target ${{ matrix.target }}
 
-      - name: Archive Windows artifact
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: Compress-Archive -Path "dist/${{ matrix.binary }}" -DestinationPath "${{ matrix.archive }}"
-
-      - name: Upload artifact
+      - name: Upload bundles
         uses: actions/upload-artifact@v6
         with:
           name: ${{ matrix.name }}
-          path: ${{ matrix.archive }}
+          path: |
+            target/${{ matrix.target }}/release/bundle/**/*
+            target/release/bundle/**/*

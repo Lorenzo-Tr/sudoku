@@ -1,8 +1,19 @@
-[package]
-name = "sudoku"
+[workspace]
+members = [
+    "crates/sudoku-core",
+    "crates/sudoku-wasm",
+    "src-tauri",
+]
+resolver = "2"
+
+[workspace.package]
 version = "0.1.0"
 edition = "2024"
 
-[dependencies]
-iced = { version = "0.13", features = ["svg"] }
+[workspace.dependencies]
 rand = "0.8"
+getrandom = { version = "0.2", features = ["js"] }
+serde = { version = "1", features = ["derive"] }
+serde-wasm-bindgen = "0.6"
+ts-rs = "10"
+wasm-bindgen = "0.2"

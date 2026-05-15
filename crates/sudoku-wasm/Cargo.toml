@@ -1,0 +1,13 @@
+[package]
+name = "sudoku-wasm"
+version.workspace = true
+edition.workspace = true
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+serde-wasm-bindgen.workspace = true
+sudoku-core = { path = "../sudoku-core" }
+wasm-bindgen.workspace = true
+js-sys = "0.3"

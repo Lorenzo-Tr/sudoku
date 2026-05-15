@@ -1,0 +1,10 @@
+[package]
+name = "sudoku-core"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+getrandom.workspace = true
+rand.workspace = true
+serde.workspace = true
+ts-rs.workspace = true
