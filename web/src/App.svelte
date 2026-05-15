@@ -1,5 +1,6 @@
 <script lang="ts">
   import init, { Game } from "./wasm/sudoku_wasm";
+  import wasmUrl from "./wasm/sudoku_wasm_bg.wasm?url";
   import type { CellView } from "./bindings/CellView";
   import type { GameView } from "./bindings/GameView";
   import resetIcon from "./assets/rotate-ccw.svg?raw";
@@ -9,14 +10,19 @@
   let game: Game | null = null;
   let state: GameView | null = null;
   let ready = false;
+  let startupError = "";
   let difficulty = "easy";
   let validationMode = "manual";
 
-  init().then(() => {
-    game = new Game();
-    refresh();
-    ready = true;
-  });
+  init(wasmUrl)
+    .then(() => {
+      game = new Game();
+      refresh();
+      ready = true;
+    })
+    .catch((error: unknown) => {
+      startupError = error instanceof Error ? error.message : String(error);
+    });
 
   function refresh() {
     if (!game) return;
@@ -109,7 +115,14 @@
 
 <svelte:window on:keydown={handleKeydown} />
 
-{#if !ready || !state}
+{#if startupError}
+  <main class="app loading">
+    <section class="startup-error">
+      <h1>Sudoku failed to start</h1>
+      <p>{startupError}</p>
+    </section>
+  </main>
+{:else if !ready || !state}
   <main class="app loading">Loading</main>
 {:else if !state.started}
   <main class="app setup-shell">

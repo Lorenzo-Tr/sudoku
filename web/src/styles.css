@@ -29,6 +29,26 @@ button {
   justify-content: center;
 }
 
+.startup-error {
+  max-width: 520px;
+  padding: 28px;
+  border-radius: 14px;
+  background: white;
+  box-shadow: 0 18px 50px rgb(44 58 84 / 10%);
+}
+
+.startup-error h1 {
+  margin: 0 0 12px;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.startup-error p {
+  margin: 0;
+  color: #6b778b;
+  overflow-wrap: anywhere;
+}
+
 .setup-panel {
   width: 420px;
   padding: 28px;
